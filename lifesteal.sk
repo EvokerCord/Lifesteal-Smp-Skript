@@ -1,0 +1,174 @@
+# Lifesteal Skript From EvokerCord
+# Made By BountyBear
+# Suggested By FireTino
+
+on load:
+	set {-heart} to fermented spider eye named "&aExtra 7cHeart"
+	set {-revive} to nether star named "&2Revive &aItem" with lore "&aRight click to revive a player"
+
+on death of player:
+	if attacker is a player:
+		if {heart::%attacker's uuid%} <= 19:
+			add 1 to {heart::%attacker's uuid%}
+			remove 1 from {heart::%victim's uuid%}
+			play sound "entity.player.levelup" for attacker
+			send "&aYou gained &2+1 Heart &afrom the &cKill" to attacker
+			send "&cYou lost &4-1 Heart &cfrom the death" to victim
+			play sound "entity.allay.death" for victim
+			play sound "entity.allay.ambient_without_item" for victim
+		else if {heart::%attacker's uuid%} = 20:
+			drop 1 of {-heart} at victim's location
+			send "&cYou lost &4-1 Heart &cfrom the death" to victim
+			remove 1 from {heart::%victim's uuid%}
+			play sound "entity.allay.death" for victim
+			play sound "entity.allay.ambient_without_item" for victim
+	else:
+		drop 1 of {-heart} at victim's location
+		send "&cYou lost &4-1 Heart &cfrom the death" to victim
+		remove 1 from {heart::%victim's uuid%}
+		play sound "entity.allay.death" for victim
+		play sound "entity.allay.ambient_without_item" for victim
+		
+
+
+on join:
+	if {heart::%player's uuid%} is not set:
+		set {heart::%player's uuid%} to 10
+		set player's max health to 10
+	else:
+		set {_h} to {heart::%player's uuid%}
+		set player's max health to {_h} 
+
+every 1 second:
+	loop all players:
+		if {heart::%loop-player's uuid%} > 0:
+			set {_n} to {heart::%loop-player's uuid%}
+			set loop-player's max health to {_n}
+		else:
+			ban loop-player due to "&cEliminated"
+			kick loop-player due to "&cEliminated"
+			add loop-player to {banned::*}
+
+
+
+# [-------------------<Item Use>--------------------]
+
+on right click:
+	if player's held item's name contains "&2Revive &aItem":
+		set {_i} to player's held item
+		set {_sl} to 0
+		set {_lifesteal::banned::GUI} to to a new chest inventory with 3 row with name "&cBannned Players"
+		loop {banned::*}:
+			set {_p} to loop-value parsed as offline player
+			set {_sk} to skull of {_p}
+			set slot {_sl} of {_lifesteal::banned::GUI} to {_sk} named "&c%{_p}%" with lore "" and "&bClick to &cRevive"
+			add 1 to {_sl}
+		open {_lifesteal::banned::GUI} to player
+
+		
+on right click:
+	if player's held item's name contains "&aExtra 7cHeart":
+		set {_i} to player's held item
+		if {heart::%player's uuid%} <= 19:
+			add 1 to {heart::%player's uuid%}
+			remove 1 of {_i} from player's inventory
+			play sound "entity.player.levelup" for player
+		else if {heart::%player's uuid%} = 20:
+			send "&cYou are already on max hearts" to player
+
+on inventory click:
+	if name of event-inventory contains "&cBannned Players":
+		cancel event
+
+on inventory click:
+	if name of event-inventory contains "&cBannned Players":
+		if event-item is a player head:
+			set {_n} to event-item's name
+			replace all "&c" with "" in {_n}
+			set {_pl} to "%{_n}%" parsed as offline player
+			remove {_pl} from {banned::*}
+			unban {_pl}
+			set {_uuid} to {_pl}'s uuid
+			set {heart::%{_uuid}%} to 3
+			broadcast "&2%player% &ajust revived &c%{_pl}%"
+			play sound "minecraft:ui.toast.challenge_complete" at volume 1 at pitch 1 to all players
+			remove 1 of nether star named "&2Revive &aItem" from player's inventory
+
+
+
+command /lifesteal [<text>] [<text>] [<text>] [<text>]:
+	permission: op
+	trigger:
+		if arg-1 is set:
+			if arg-1 is "item":
+				if arg-2 is set:
+					if arg-2 is "Heart":
+						if arg-3 is set:
+							if arg-4 is not set:
+								set {_quant} to arg-3 parsed as number
+								loop {_quant} times:
+									give 1 of {-heart} to player
+							else:
+								set {_p} to arg-4 parsed as player
+								set {_quant} to arg-3 parsed as number
+								loop {_quant} times:
+									give 1 of {-heart} to {_p}
+						else:
+							if arg-4 is not set:
+								give 1 of {-heart} to player
+							else:
+								set {_p} to arg-4 parsed as player
+								give 1 of {-heart} to {_p}
+					if arg-2 is "Revive":
+						if arg-3 is set:
+							if arg-4 is not set:
+								set {_quant} to arg-3 parsed as number
+								loop {_quant} times:
+									give 1 of {-revive} to player
+							else:
+								set {_p} to arg-4 parsed as player
+								set {_quant} to arg-3 parsed as number
+								loop {_quant} times:
+									give 1 of {-revive} to {_p}
+						else:
+							if arg-4 is not set:
+								give 1 of {-revive} to player
+							else:
+								set {_p} to arg-4 parsed as player
+								give 1 of {-revive} to {_p}
+			if arg-1 is "Heart":
+				if arg-2 is set:
+					if arg-2 is "set":
+						if arg-3 is set:
+							set {_p} to arg-3 parsed as player
+							if arg-4 is set:
+								set {_i} to arg-4 parsed as number
+								set {_uuid} to {_p}'s uuid
+								set {heart::%{_uuid}%} to {_i}
+					if arg-2 is "add":
+						if arg-3 is set:
+							set {_p} to arg-3 parsed as player
+							if arg-4 is set:
+								set {_i} to arg-4 parsed as number
+								set {_uuid} to {_p}'s uuid
+								add {_i} to {heart::%{_uuid}%}
+					if arg-2 is "remove":
+						if arg-3 is set:
+							set {_p} to arg-3 parsed as player
+							if arg-4 is set:
+								set {_i} to arg-4 parsed as number
+								set {_uuid} to {_p}'s uuid
+								remove {_i} from {heart::%{_uuid}%}
+
+
+on tab complete for "/lifesteal":
+	set tab completions for position 1 to "Item" and "Heart"
+	if tab arg-1 = "Item":
+		set tab completions for position 2 to "Heart" and "Revive"
+		set tab completions for position 3 to "1" and "2" and "3" and "4" and "5"
+		set tab completions for position 4 to all players
+	if tab arg-1 = "Heart":
+		set tab completions for position 2 to "set" and "add" and "remove"
+		set tab completions for position 3 to all players
+		set tab completions for position 4 to "1" and "2" and "3" and "4" and "5"
+
