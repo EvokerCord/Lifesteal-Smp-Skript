@@ -10,3 +10,6 @@ Made By BountyBear
 ## Plugins
 - Skript
 - Skbee
+
+# Join EvokerCord For More
+- discord.gg/evokercord
